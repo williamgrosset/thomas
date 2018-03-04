@@ -17,9 +17,6 @@ typedef struct Train {
 
 /****** STATION ******/
 
-struct Train WestStation[MAX_SIZE];
-struct Train EastStation[MAX_SIZE];
-
 bool isEmpty(int station_size) {
   return station_size == 0;
 }
@@ -32,8 +29,13 @@ struct Train peek(struct Train station[], int station_size) {
   return station[station_size - 1];
 }
 
-struct Train remove(struct Train station[], int station_size) {
+struct Train removeTrain(struct Train station[], int station_size) {
   return station[--station_size];
+}
+
+void addTrain(struct Train station[], int station_size, struct Train train) {
+
+
 }
 
 /****** /STATION ******/
@@ -52,7 +54,12 @@ int main() {
   int loading_time;
   int crossing_time;
   int count = 0;
+
   // Create PriorityQueue for east_station and west_station (two instances of Station)
+  int west_station_size = 0;
+  int east_station_size = 0;
+  struct Train WestStation[MAX_SIZE];
+  struct Train EastStation[MAX_SIZE];
 
   while (EOF != fscanf(fp, "%c %d %d\n", &direction, &loading_time, &crossing_time)) {
     printf("%c %d %d\n", direction, loading_time, crossing_time);

@@ -1,12 +1,12 @@
 # thomas
-:train: Thomas the multi-threaded train scheduler.
+:train: Thomas the multithreaded train scheduler.
 
 ## TODO
 + Create PriorityQueue with specialized object
-+ Use libraries for memory handling data structures (pls)
 + Create threads for each train
 + Begin loading once all threads are created
 + Update design document and add `changes.txt`
++ Use libraries for memory handling data structures (pls)
 + ...
 
 ## Overview
@@ -18,7 +18,7 @@ This project was an assignment for the [Operating Systems](https://github.com/wi
 make setup
 ```
 
-#### Run train scheduler
+#### Run scheduler
 ```
 make run
 ```
