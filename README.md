@@ -2,12 +2,11 @@
 :train: Thomas the multi-threaded train scheduler.
 
 ## TODO
++ Create PriorityQueue with specialized object
 + Use libraries for memory handling data structures (pls)
-+ Load and parse file using `fget`
 + Create threads for each train
 + Begin loading once all threads are created
 + Update design document and add `changes.txt`
-+ Create PriorityQueue with specialized object
 + ...
 
 ## Overview

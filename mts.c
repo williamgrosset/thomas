@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#define n 3
+
+/****** TRAIN ******/
 
 typedef struct Train {
   int id;
@@ -8,6 +11,16 @@ typedef struct Train {
   int loading_time; // (seconds)
   int crossing_time; // (seconds)
 } Train;
+
+/****** /TRAIN ******/
+
+/****** STATION ******/
+
+struct Train WestStation[n];
+
+struct Train EastStation[n];
+
+/****** /STATION ******/
 
 int main() {
   FILE *fp;
@@ -23,6 +36,7 @@ int main() {
   int loading_time;
   int crossing_time;
   int count = 0;
+  // Create PriorityQueue for east_station and west_station (two instances of Station)
 
   while (EOF != fscanf(fp, "%c %d %d\n", &direction, &loading_time, &crossing_time)) {
     printf("%c %d %d\n", direction, loading_time, crossing_time);
