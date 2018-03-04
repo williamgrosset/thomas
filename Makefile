@@ -2,7 +2,7 @@
 setup: mts
 
 mts: mts.c
-	gcc mts.c -lreadline -o mts.o
+	gcc mts.c -o mts.o
 
 run: mts.o
 	./mts.o

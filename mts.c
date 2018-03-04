@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef struct Train {
+  int number;
+  // 0 = low; 1 = high
+  int priority;
+  int loading_time;
+  int crossing_time;
+} Train;
+
 int main() {
   FILE *fp;
   
