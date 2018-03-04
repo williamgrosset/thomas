@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#define n 3
+#define MAX_SIZE 1024
 
 /****** TRAIN ******/
 
@@ -16,9 +16,9 @@ typedef struct Train {
 
 /****** STATION ******/
 
-struct Train WestStation[n];
+struct Train WestStation[MAX_SIZE];
 
-struct Train EastStation[n];
+struct Train EastStation[MAX_SIZE];
 
 /****** /STATION ******/
 
