@@ -3,11 +3,10 @@
 #include <ctype.h>
 
 typedef struct Train {
-  int number;
-  // 0 = low; 1 = high
-  int priority;
-  int loading_time;
-  int crossing_time;
+  int id;
+  int priority; // 0 = low; 1 = high
+  int loading_time; // (seconds)
+  int crossing_time; // (seconds)
 } Train;
 
 int main() {
@@ -28,7 +27,7 @@ int main() {
   while (EOF != fscanf(fp, "%c %d %d\n", &direction, &loading_time, &crossing_time)) {
     printf("%c %d %d\n", direction, loading_time, crossing_time);
     Train train;
-    train.number = count++;
+    train.id = count++;
     train.priority = isupper(direction) ? 1 : 0;
     train.loading_time = loading_time;
     train.crossing_time = crossing_time;
