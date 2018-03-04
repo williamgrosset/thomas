@@ -7,7 +7,7 @@
 
 typedef struct Train {
   int id;
-  int priority; // 0 = low; 1 = high
+  int priority; // (0 = low; 1 = high)
   int loading_time; // (seconds)
   int crossing_time; // (seconds)
 } Train;
@@ -16,9 +16,8 @@ typedef struct Train {
 
 /****** STATION ******/
 
-struct Train WestStation[MAX_SIZE];
-
 struct Train EastStation[MAX_SIZE];
+struct Train WestStation[MAX_SIZE];
 
 /****** /STATION ******/
 
