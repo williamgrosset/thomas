@@ -16,8 +16,8 @@ typedef struct Train {
 
 /****** STATION ******/
 
-struct Train EastStation[MAX_SIZE];
 struct Train WestStation[MAX_SIZE];
+struct Train EastStation[MAX_SIZE];
 
 /****** /STATION ******/
 
