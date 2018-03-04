@@ -32,6 +32,10 @@ struct Train peek(struct Train station[], int station_size) {
   return station[station_size - 1];
 }
 
+struct Train remove(struct Train station[], int station_size) {
+  return station[--station_size];
+}
+
 /****** /STATION ******/
 
 int main() {
