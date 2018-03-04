@@ -27,11 +27,9 @@ int main() {
 
   while (EOF != fscanf(fp, "%c %d %d\n", &direction, &loading_time, &crossing_time)) {
     printf("%c %d %d\n", direction, loading_time, crossing_time);
-    int priority = isupper(direction) ? 1 : 0;
-
     Train train;
     train.number = count++;
-    train.priority = priority;
+    train.priority = isupper(direction) ? 1 : 0;
     train.loading_time = loading_time;
     train.crossing_time = crossing_time;
   }
