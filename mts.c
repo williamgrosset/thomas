@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <ctype.h>
 #define MAX_SIZE 1024
 
@@ -18,6 +19,18 @@ typedef struct Train {
 
 struct Train WestStation[MAX_SIZE];
 struct Train EastStation[MAX_SIZE];
+
+bool isEmpty(int station_size) {
+  return station_size == 0;
+}
+
+bool isFull(int station_size) {
+  return station_size == MAX_SIZE;
+}
+
+struct Train peek(struct Train station[], int station_size) {
+  return station[station_size - 1];
+}
 
 /****** /STATION ******/
 
