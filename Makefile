@@ -1,11 +1,11 @@
 .phony setup:
-setup: shell
+setup: mts
 
-shell: shell.c
-	gcc shell.c -lreadline -o shell.o
+mts: mts.c
+	gcc mts.c -lreadline -o mts.o
 
-run: shell.o
-	./shell.o
+run: mts.o
+	./mts.o
 
 .PHONY clean:
 clean:
