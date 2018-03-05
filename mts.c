@@ -34,8 +34,25 @@ struct Train removeTrain(struct Train station[], int station_size) {
 }
 
 void addTrain(struct Train station[], int station_size, struct Train train) {
+  int i = 0;
 
+  if (!isFull(station_size)) {
+    if (station_size == 0) {
+      station[station_size++] = train;
+    } else {
+      for (i = station_size - 1; i >= 0; i--) {
+        if (train.priority < station[i].priority) {
+          station[i + 1] = station[i];
+        } else {
+          break;
+        }
+      }
 
+      // insert train
+      station[i + 1] = train;
+      station_size++;
+    }
+  }
 }
 
 /****** /STATION ******/
@@ -68,6 +85,12 @@ int main() {
     train.priority = isupper(direction) ? 1 : 0;
     train.loading_time = loading_time;
     train.crossing_time = crossing_time;
+
+    if (direction == 'w' || direction == 'W') {
+      addTrain(WestStation, east_station_size, train);
+    } else {
+      addTrain(EastStation, east_station_size, train);
+    }
   }
 
   fclose(fp);
