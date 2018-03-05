@@ -33,15 +33,15 @@ struct Train removeTrain(struct Train station[], int station_size) {
   return station[--station_size];
 }
 
-void addTrain(struct Train station[], int station_size, struct Train train) {
+void addTrain(struct Train station[], int *station_size, struct Train train) {
   int i = 0;
 
-  if (!isFull(station_size)) {
-    if (station_size == 0) {
-      station[station_size++] = train;
+  if (!isFull(*station_size)) {
+    if (*station_size == 0) {
+      station[*station_size] = train;
     } else {
-      for (i = station_size - 1; i >= 0; i--) {
-        if (train.priority < station[i].priority) {
+      for (i = *station_size - 1; i >= 0; i--) {
+        if (train.priority <= station[i].priority && train.id > station[i].id) {
           station[i + 1] = station[i];
         } else {
           break;
@@ -50,8 +50,8 @@ void addTrain(struct Train station[], int station_size, struct Train train) {
 
       // insert train
       station[i + 1] = train;
-      station_size++;
     }
+    *station_size += 1;
   }
 }
 
@@ -61,7 +61,7 @@ void displayStation(struct Train station[], int station_size) {
 
   for (i = 0; i < station_size; i++) {
     Train train = station[i];
-    printf("ID: %i, Priority: %i\n", train.id, train.priority);
+    printf("Index: %i, ID: %i, Priority: %i\n", i, train.id, train.priority);
   }
 }
 
@@ -97,11 +97,13 @@ int main() {
     train.crossing_time = crossing_time;
 
     if (direction == 'w' || direction == 'W') {
-      addTrain(WestStation, east_station_size, train);
+      addTrain(WestStation, &west_station_size, train);
     } else {
-      addTrain(EastStation, east_station_size, train);
+      addTrain(EastStation, &east_station_size, train);
     }
   }
+
+  displayStation(EastStation, east_station_size);
 
   fclose(fp);
   return 0;
