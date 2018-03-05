@@ -55,6 +55,16 @@ void addTrain(struct Train station[], int station_size, struct Train train) {
   }
 }
 
+/****** FOR TESTING ******/
+void displayStation(struct Train station[], int station_size) {
+  int i = 0;
+
+  for (i = 0; i < station_size; i++) {
+    Train train = station[i];
+    printf("ID: %i, Priority: %i\n", train.id, train.priority);
+  }
+}
+
 /****** /STATION ******/
 
 int main() {
