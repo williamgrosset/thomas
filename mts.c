@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <pthread.h>
+#include <unistd.h>
 #define MAX_SIZE 1024
 
 /****** MUTEXES & CONDITION VARIABLES ******/
