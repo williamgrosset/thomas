@@ -27,6 +27,15 @@ typedef struct Train {
 
 /****** /TRAIN ******/
 
+/****** TRAIN THREAD ******/
+
+typedef struct TrainThread {
+  struct Train train;
+  pthread_t thread;
+} TrainThread;
+
+/****** /TRAIN THREAD ******/
+
 /****** STATION ******/
 
 bool isEmpty(int station_size) {
