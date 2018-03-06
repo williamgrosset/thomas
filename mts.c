@@ -60,7 +60,7 @@ void addTrain(struct Train station[], int *station_size, struct Train train) {
         }
       }
 
-      // insert train
+      // Insert train
       station[i + 1] = train;
     }
     *station_size += 1;
@@ -90,17 +90,18 @@ void* process_train(void *arg) {
   printf("%lu\n", count);
 
   if (count == 2) {
-    // Signal that all thats have been created 
+    // Signal that the last train has been created
     printf("Last thread created.\n");
     pthread_mutex_lock(&track_lock);
     pthread_cond_signal(&threads_created);
     pthread_mutex_unlock(&track_lock);
   }
 
+  // Wait to begin loading
   pthread_mutex_lock(&track_lock);
-  // Wait to begin loading all trains at same time
   pthread_cond_wait(&can_load, &track_lock);
   pthread_mutex_unlock(&track_lock);
+
   printf("THREAD IS ALIVE!\n");
   // simulate_train_work(train.loading_time)
 
@@ -111,7 +112,6 @@ void* process_train(void *arg) {
 int main(int argc, char* argv[]) {
   FILE *fp;
   
-  // TODO: Pass in arg for file
   fp = fopen(argv[1], "r");
   if (fp == NULL) {
     perror("Error opening file.");
@@ -143,6 +143,7 @@ int main(int argc, char* argv[]) {
       .crossing_time = crossing_time / 10.0
     };
 
+    // create array of structs (TrainThread)
     threads[num_threads++] = thread;
 
     /* Temporary
@@ -155,24 +156,27 @@ int main(int argc, char* argv[]) {
 
   long i;
   for (i = 0; i < num_threads; i++) {
-    // TODO: pass in i and num_threads (and more args)
+    // TODO:
+    // pass in i (count), num_threads, train, (and more args)
     pthread_create(&threads[i], NULL, &process_train, (void *) i);
   }
 
-  // Wait until all threads have been created (receive signal from TT)
+  // Wait until last train thread has been created
   pthread_cond_wait(&threads_created, &track_lock);
   pthread_mutex_unlock(&track_lock);
 
-  // Broadcast to all trains that are waiting to begin loading
+  // Broadcast to all trains to begin loading
   pthread_mutex_lock(&track_lock);
   pthread_cond_broadcast(&can_load);
   pthread_mutex_unlock(&track_lock);
 
-  // while (n trains to be dispatched) {
   // Wait to dispatch a train across main track
-  // pthread_mutex_lock(&track_lock);
-  // pthread_cond_wait(&ready_train);
+  // while (n trains to be dispatched) {
+    // pthread_mutex_lock(&track_lock);
+    // pthread_cond_wait(&ready_train);
+  // }
 
+  // TODO: When to join pthreads together?
   long t;
   for (t = 0; t < num_threads; t++) {
     pthread_join(threads[t], NULL);
@@ -181,6 +185,7 @@ int main(int argc, char* argv[]) {
   // Temporary
   // displayStation(EastStation, east_station_size);
 
+  // TODO: Destroy mutexes
   fclose(fp);
   return 0;
 }
