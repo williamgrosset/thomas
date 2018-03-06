@@ -89,6 +89,7 @@ int main() {
   struct Train WestStation[MAX_SIZE];
   struct Train EastStation[MAX_SIZE];
 
+  // TODO: Detect how many trains (lines) in file
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
     printf("%c %f %f\n", direction, loading_time, crossing_time);
     Train train;
@@ -97,6 +98,14 @@ int main() {
     train.loading_time = loading_time / 10.0;
     train.crossing_time = crossing_time / 10.0;
 
+    // TODO:
+    // Create threads for each train
+    // Train threads LOCK TRACK MUTEX and wait to be signaled to begin loading
+    // Main thread waits for last train thread to signal main (all threads created)
+    // Main thread is signaled and broadcasts to begin loading and RELEASES TRACK MUTEX
+    // Train threads begin loading and begin STATION ENQUEUE PROCESS
+
+    // Temporary
     if (direction == 'w' || direction == 'W') {
       addTrain(WestStation, &west_station_size, train);
     } else {
@@ -104,6 +113,7 @@ int main() {
     }
   }
 
+  // Temporary
   displayStation(EastStation, east_station_size);
 
   fclose(fp);
