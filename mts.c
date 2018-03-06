@@ -108,11 +108,11 @@ void* process_train(void *arg) {
   return NULL;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
   FILE *fp;
   
   // TODO: Pass in arg for file
-  fp = fopen("trains.txt", "r");
+  fp = fopen(argv[1], "r");
   if (fp == NULL) {
     perror("Error opening file.");
     return -1;

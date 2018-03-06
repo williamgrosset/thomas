@@ -5,7 +5,7 @@ mts: mts.c
 	gcc mts.c -o mts.o
 
 run: mts.o
-	./mts.o
+	./mts.o $(f)
 
 .PHONY clean:
 clean:

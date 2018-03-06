@@ -28,7 +28,9 @@ make setup
 
 #### Run scheduler
 ```
-make run
+make run f=trains.txt
+# OR
+./mts.o trains.txt
 ```
 
 #### Clean build
