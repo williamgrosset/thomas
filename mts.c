@@ -80,6 +80,10 @@ void displayStation(struct Train station[], int station_size) {
 
 /****** /STATION ******/
 
+void process_train(float time_duration) {
+  usleep(time_duration);
+}
+
 void* train_process(void *arg) {
   printf("Thread created.\n");
   long count = (int) arg;
@@ -96,16 +100,11 @@ void* train_process(void *arg) {
   pthread_mutex_lock(&track_lock);
   // Wait to begin loading all trains at same time
   pthread_cond_wait(&can_load, &track_lock);
-  printf("THREAD IS ALIVE!\n");
   pthread_mutex_unlock(&track_lock);
+  printf("THREAD IS ALIVE!\n");
+  // process_train(train.loading_time)
 
-  // TODO:
-  // lock track mutex
-  // wait to be signaled
-  // release track mutex
-  // usleep to load (create function)
-  // lock station mutex
-  // STOP
+  // TODO: Lock station mutex, enqueue, release station mutex
   return NULL;
 }
 
@@ -159,7 +158,6 @@ int main() {
   for (i = 0; i < num_threads; i++) {
     // TODO: pass in i and num_threads
     pthread_create(&threads[i], NULL, &train_process, (void *) i);
-    // TODO: Eventually pthread_join here (?)
   }
 
   // Wait until all threads have been created (receive signal from TT)
