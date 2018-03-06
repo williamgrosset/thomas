@@ -36,6 +36,11 @@ typedef struct TrainThread {
 
 /****** /TRAIN THREAD ******/
 
+typedef struct ThreadParams {
+  struct Train train;
+  int count;
+} ThreadParams;
+
 /****** STATION ******/
 
 bool isEmpty(int station_size) {
@@ -95,7 +100,7 @@ void simulate_train_work(float time_duration) {
 
 void* process_train(void *arg) {
   printf("Thread created.\n");
-  long count = (int) arg;
+  long count = (long) arg;
   printf("%lu\n", count);
 
   if (count == 2) {
@@ -159,16 +164,17 @@ int main(int argc, char* argv[]) {
 
     /* Temporary
     if (direction == 'w' || direction == 'W') {
-      addTrain(WestStation, &west_station_size, train);
+      addTrain(WestStation, &west_station_size, trainThread.train);
     } else {
-      addTrain(EastStation, &east_station_size, train);
+      addTrain(EastStation, &east_station_size, trainThread.train);
     }*/
   }
 
+  // Temporary
+  // displayStation(EastStation, east_station_size);
+
   long i;
   for (i = 0; i < threads_count; i++) {
-    // TODO:
-    // pass in i (count), threads_count, train, (and more args)
     pthread_create(&trainThreads[i].thread, NULL, &process_train, (void *) i);
   }
 
@@ -192,9 +198,6 @@ int main(int argc, char* argv[]) {
   for (t = 0; t < threads_count; t++) {
     pthread_join(trainThreads[t].thread, NULL);
   }
-
-  // Temporary
-  // displayStation(EastStation, east_station_size);
 
   // TODO: Destroy mutexes
   fclose(fp);
