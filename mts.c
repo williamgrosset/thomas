@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
   struct Train WestStation[MAX_SIZE];
   struct Train EastStation[MAX_SIZE];
 
-  int num_threads = 0;
+  int threads_count = 0;
   float loading_time;
   float crossing_time;
   char direction;
@@ -137,14 +137,14 @@ int main(int argc, char* argv[]) {
     // printf("%c %f %f\n", direction, loading_time, crossing_time);
     pthread_t thread;
     struct Train train = {
-      .id = num_threads,
+      .id = threads_count,
       .priority = isupper(direction) ? 1 : 0,
       .loading_time = loading_time / 10.0,
       .crossing_time = crossing_time / 10.0
     };
 
     // create array of structs (TrainThread)
-    threads[num_threads++] = thread;
+    threads[threads_count++] = thread;
 
     /* Temporary
     if (direction == 'w' || direction == 'W') {
@@ -155,9 +155,9 @@ int main(int argc, char* argv[]) {
   }
 
   long i;
-  for (i = 0; i < num_threads; i++) {
+  for (i = 0; i < threads_count; i++) {
     // TODO:
-    // pass in i (count), num_threads, train, (and more args)
+    // pass in i (count), threads_count, train, (and more args)
     pthread_create(&threads[i], NULL, &process_train, (void *) i);
   }
 
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
 
   // TODO: When to join pthreads together?
   long t;
-  for (t = 0; t < num_threads; t++) {
+  for (t = 0; t < threads_count; t++) {
     pthread_join(threads[t], NULL);
   }
 
