@@ -5,6 +5,15 @@
 #include <pthread.h>
 #define MAX_SIZE 1024
 
+/****** MUTEXES & CONDITION VARIABLES ******/
+
+pthread_mutex_t track_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t west_station_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t east_station_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t can_load = PTHREAD_COND_INITIALIZER;
+
+/****** /MUTEXES & CONDITION VARIABLES ******/
+
 /****** TRAIN ******/
 
 typedef struct Train {
@@ -79,29 +88,31 @@ int main() {
     return -1;
   }
 
-  char direction;
-  float loading_time;
-  float crossing_time;
-  int count = 0;
-
   // Create PriorityQueue for east_station and west_station (two instances of Station)
   int west_station_size = 0;
   int east_station_size = 0;
   struct Train WestStation[MAX_SIZE];
   struct Train EastStation[MAX_SIZE];
 
-  // MUTEXES & CONDITION VARIABLES
-  pthread_mutex_t track_lock = PTHREAD_MUTEX_INITIALIZER;
-  pthread_cond_t can_load = PTHREAD_COND_INITIALIZER;
+  // Create array of train threads (pthread_t threads[])
+  // TODO: Detect how many trains (lines) in file (length of threads)
+  //
+  char direction;
+  float loading_time;
+  float crossing_time;
+  int count = 0;
 
-  // TODO: Detect how many trains (lines) in file
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
     printf("%c %f %f\n", direction, loading_time, crossing_time);
+    pthread_t thread;
     Train train;
     train.id = count++;
     train.priority = isupper(direction) ? 1 : 0;
     train.loading_time = loading_time / 10.0;
     train.crossing_time = crossing_time / 10.0;
+
+    // pthread_create(&thread, NULL, *thread, (void*) arg);
+    // pthread_join(thread, NULL);
 
     // TODO:
     // Create threads for each train
