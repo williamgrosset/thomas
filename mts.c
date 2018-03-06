@@ -136,12 +136,12 @@ int main(int argc, char* argv[]) {
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
     // printf("%c %f %f\n", direction, loading_time, crossing_time);
     pthread_t thread;
-    Train train;
-
-    train.id = num_threads;
-    train.priority = isupper(direction) ? 1 : 0;
-    train.loading_time = loading_time / 10.0;
-    train.crossing_time = crossing_time / 10.0;
+    struct Train train = {
+      .id = num_threads,
+      .priority = isupper(direction) ? 1 : 0,
+      .loading_time = loading_time / 10.0,
+      .crossing_time = crossing_time / 10.0
+    };
 
     threads[num_threads++] = thread;
 
