@@ -11,6 +11,7 @@ pthread_mutex_t track_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t west_station_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t east_station_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t can_load = PTHREAD_COND_INITIALIZER;
+pthread_cond_t threads_created = PTHREAD_COND_INITIALIZER;
 
 /****** /MUTEXES & CONDITION VARIABLES ******/
 
@@ -80,6 +81,20 @@ void displayStation(struct Train station[], int station_size) {
 
 void* train_process(void *arg) {
   printf("Thread created.\n");
+  long count = (int) arg;
+  printf("%lu\n", count);
+
+  if (count == 2) {
+    printf("Last thread created.\n");
+    pthread_mutex_lock(&track_lock);
+    pthread_cond_signal(&threads_created);
+    pthread_mutex_unlock(&track_lock);
+  }
+
+  pthread_mutex_lock(&track_lock);
+  pthread_cond_wait(&can_load, &track_lock);
+  printf("THREAD IS ALIVE!\n");
+  pthread_mutex_unlock(&track_lock);
   // TODO:
   // lock track mutex
   // wait to be signaled
@@ -106,8 +121,9 @@ int main() {
   struct Train WestStation[MAX_SIZE];
   struct Train EastStation[MAX_SIZE];
 
-  // Create array of train threads (pthread_t threads[])
+  // Create array of train threads and lock track mutex
   pthread_t threads[MAX_SIZE];
+  pthread_mutex_lock(&track_lock);
 
   char direction;
   float loading_time;
@@ -128,7 +144,7 @@ int main() {
     num_threads++;
 
     // TODO:
-    // Create threads for each train
+    // (DONE) Create threads for each train
     // Train threads LOCK TRACK MUTEX and wait to be signaled to begin loading
     // Main thread waits for last train thread to signal main (all threads created)
     // Main thread is signaled and broadcasts to begin loading and RELEASES TRACK MUTEX
@@ -142,10 +158,25 @@ int main() {
     }
   }
 
-  int i;
+  long i;
   for (i = 0; i < num_threads; i++) {
-    pthread_create(&threads[i], NULL, &train_process, NULL);
-    pthread_join(threads[i], NULL);
+    // TODO: pass in i and num_threads
+    pthread_create(&threads[i], NULL, &train_process, (void *) i);
+    // TODO: Eventually pthread_join here (?)
+  }
+
+  // Wait until all threads have been created (receive signal from TT)
+  pthread_cond_wait(&threads_created, &track_lock);
+  pthread_mutex_unlock(&track_lock);
+
+  // Broadcast to all trains that are waiting to begin loading
+  pthread_mutex_lock(&track_lock);
+  pthread_cond_broadcast(&can_load);
+  pthread_mutex_unlock(&track_lock);
+
+  long t;
+  for (t = 0; t < num_threads; t++) {
+    pthread_join(threads[t], NULL);
   }
 
   // Temporary
