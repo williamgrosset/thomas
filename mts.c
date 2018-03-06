@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
   // Lock track mutex initially
   pthread_mutex_lock(&track_lock);
 
-  // Create PriorityQueue for West & East station
+  // Initialize PriorityQueues for West & East station
   int west_station_size = 0;
   int east_station_size = 0;
   struct Train WestStation[MAX_SIZE];
@@ -159,6 +159,7 @@ int main(int argc, char* argv[]) {
   char direction;
   TrainThread trainThreads[MAX_SIZE];
 
+  // Scan input file and initialize train threads
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
     // printf("%c %f %f\n", direction, loading_time, crossing_time);
     pthread_t thread;
@@ -185,9 +186,8 @@ int main(int argc, char* argv[]) {
   // Temporary
   // displayStation(EastStation, east_station_size);
 
-  int i;
-  for (i = 0; i < thread_count; i++) {
-    // TODO: Pass in Train from trainThreads and use count, num_threads
+  // Create threads
+  for (int i = 0; i < thread_count; i++) {
     struct ThreadParams *threadParams = (ThreadParams*) malloc(sizeof(ThreadParams));
     threadParams->train = trainThreads[i].train;
     threadParams->curr_count = i;
@@ -212,8 +212,7 @@ int main(int argc, char* argv[]) {
   // }
 
   // TODO: When to join pthreads together?
-  long t;
-  for (t = 0; t < thread_count; t++) {
+  for (long t = 0; t < thread_count; t++) {
     pthread_join(trainThreads[t].thread, NULL);
   }
 
