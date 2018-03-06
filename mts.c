@@ -145,8 +145,7 @@ int main() {
 
     threads[num_threads++] = thread;
 
-    // Temporary
-    /*
+    /* Temporary
     if (direction == 'w' || direction == 'W') {
       addTrain(WestStation, &west_station_size, train);
     } else {
@@ -156,7 +155,7 @@ int main() {
 
   long i;
   for (i = 0; i < num_threads; i++) {
-    // TODO: pass in i and num_threads
+    // TODO: pass in i and num_threads (and more args)
     pthread_create(&threads[i], NULL, &process_train, (void *) i);
   }
 
@@ -168,6 +167,11 @@ int main() {
   pthread_mutex_lock(&track_lock);
   pthread_cond_broadcast(&can_load);
   pthread_mutex_unlock(&track_lock);
+
+  // while (n trains to be dispatched) {
+  // Wait to dispatch a train across main track
+  // pthread_mutex_lock(&track_lock);
+  // pthread_cond_wait(&ready_train);
 
   long t;
   for (t = 0; t < num_threads; t++) {
