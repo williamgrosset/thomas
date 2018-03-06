@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
   float loading_time;
   float crossing_time;
   char direction;
-  pthread_t threads[MAX_SIZE];
+  TrainThread trainThreads[MAX_SIZE];
 
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
     // printf("%c %f %f\n", direction, loading_time, crossing_time);
@@ -151,9 +151,12 @@ int main(int argc, char* argv[]) {
       .loading_time = loading_time / 10.0,
       .crossing_time = crossing_time / 10.0
     };
+    struct TrainThread trainThread = {
+      .thread = thread,
+      .train = train
+    };
 
-    // create array of structs (TrainThread)
-    threads[threads_count++] = thread;
+    trainThreads[threads_count++] = trainThread;
 
     /* Temporary
     if (direction == 'w' || direction == 'W') {
@@ -167,7 +170,7 @@ int main(int argc, char* argv[]) {
   for (i = 0; i < threads_count; i++) {
     // TODO:
     // pass in i (count), threads_count, train, (and more args)
-    pthread_create(&threads[i], NULL, &process_train, (void *) i);
+    pthread_create(&trainThreads[i].thread, NULL, &process_train, (void *) i);
   }
 
   // Wait until last train thread has been created
@@ -188,7 +191,7 @@ int main(int argc, char* argv[]) {
   // TODO: When to join pthreads together?
   long t;
   for (t = 0; t < threads_count; t++) {
-    pthread_join(threads[t], NULL);
+    pthread_join(trainThreads[t].thread, NULL);
   }
 
   // Temporary
