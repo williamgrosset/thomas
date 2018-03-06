@@ -78,6 +78,16 @@ void displayStation(struct Train station[], int station_size) {
 
 /****** /STATION ******/
 
+void train_process() {
+  // TODO:
+  // lock track mutex
+  // wait to be signaled
+  // release track mutex
+  // usleep to load (create function)
+  // lock station mutex
+  // STOP
+}
+
 int main() {
   FILE *fp;
   
@@ -95,24 +105,25 @@ int main() {
   struct Train EastStation[MAX_SIZE];
 
   // Create array of train threads (pthread_t threads[])
-  // TODO: Detect how many trains (lines) in file (length of threads)
-  //
+  pthread_t threads[MAX_SIZE];
+
   char direction;
   float loading_time;
   float crossing_time;
-  int count = 0;
+  int num_threads = 0;
 
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
     printf("%c %f %f\n", direction, loading_time, crossing_time);
     pthread_t thread;
     Train train;
-    train.id = count++;
+    train.id = num_threads;
     train.priority = isupper(direction) ? 1 : 0;
     train.loading_time = loading_time / 10.0;
     train.crossing_time = crossing_time / 10.0;
 
-    // pthread_create(&thread, NULL, *thread, (void*) arg);
-    // pthread_join(thread, NULL);
+    threads[num_threads] = thread;
+
+    num_threads++;
 
     // TODO:
     // Create threads for each train
@@ -127,6 +138,13 @@ int main() {
     } else {
       addTrain(EastStation, &east_station_size, train);
     }
+  }
+  num_threads++;
+
+  int i;
+  for (i = 0; i < num_threads; i++) {
+    // pthread_create(&thread, NULL, *thread, (void*) arg);
+    // pthread_join(thread, NULL);
   }
 
   // Temporary
