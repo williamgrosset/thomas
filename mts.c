@@ -125,7 +125,8 @@ void* process_train(void *arg) {
   // simulateWork(train.loading_time)
 
   // TODO: Lock station mutex, enqueue, release station mutex
-  return NULL;
+
+  pthread_exit(NULL);
 }
 
 int main(int argc, char* argv[]) {
@@ -180,6 +181,7 @@ int main(int argc, char* argv[]) {
 
   long i;
   for (i = 0; i < threads_count; i++) {
+    // TODO: Pass in Train from trainThreads and use count, num_threads
     pthread_create(&trainThreads[i].thread, NULL, &process_train, (void *) i);
   }
 
