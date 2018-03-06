@@ -28,6 +28,10 @@ typedef struct Train {
   float crossing_time; // (seconds)
 } Train;
 
+void simulateWork(float time_duration) {
+  usleep(time_duration);
+}
+
 /****** /TRAIN ******/
 
 /****** TRAIN THREAD ******/
@@ -97,10 +101,6 @@ void displayStation(struct Train station[], int station_size) {
 
 /****** /STATION ******/
 
-void simulate_train_work(float time_duration) {
-  usleep(time_duration);
-}
-
 void* process_train(void *arg) {
   printf("Thread created.\n");
   long count = (long) arg;
@@ -120,7 +120,7 @@ void* process_train(void *arg) {
   pthread_mutex_unlock(&track_lock);
 
   printf("THREAD IS ALIVE!\n");
-  // simulate_train_work(train.loading_time)
+  // simulateWork(train.loading_time)
 
   // TODO: Lock station mutex, enqueue, release station mutex
   return NULL;
