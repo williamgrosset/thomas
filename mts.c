@@ -9,8 +9,8 @@
 typedef struct Train {
   int id;
   int priority; // (0 = low; 1 = high)
-  int loading_time; // (seconds)
-  int crossing_time; // (seconds)
+  float loading_time; // (seconds)
+  float crossing_time; // (seconds)
 } Train;
 
 /****** /TRAIN ******/
@@ -61,7 +61,8 @@ void displayStation(struct Train station[], int station_size) {
 
   for (i = 0; i < station_size; i++) {
     Train train = station[i];
-    printf("Index: %i, ID: %i, Priority: %i\n", i, train.id, train.priority);
+    printf("Index: %i, ID: %i, Priority: %i, Loading: %f, Crossing: %f\n", i, train.id, train.priority,
+        train.loading_time, train.crossing_time);
   }
 }
 
@@ -78,8 +79,8 @@ int main() {
   }
 
   char direction;
-  int loading_time;
-  int crossing_time;
+  float loading_time;
+  float crossing_time;
   int count = 0;
 
   // Create PriorityQueue for east_station and west_station (two instances of Station)
@@ -88,13 +89,13 @@ int main() {
   struct Train WestStation[MAX_SIZE];
   struct Train EastStation[MAX_SIZE];
 
-  while (EOF != fscanf(fp, "%c %d %d\n", &direction, &loading_time, &crossing_time)) {
-    printf("%c %d %d\n", direction, loading_time, crossing_time);
+  while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
+    printf("%c %f %f\n", direction, loading_time, crossing_time);
     Train train;
     train.id = count++;
     train.priority = isupper(direction) ? 1 : 0;
-    train.loading_time = loading_time;
-    train.crossing_time = crossing_time;
+    train.loading_time = loading_time / 10.0;
+    train.crossing_time = crossing_time / 10.0;
 
     if (direction == 'w' || direction == 'W') {
       addTrain(WestStation, &west_station_size, train);

@@ -1,5 +1,5 @@
 # thomas
-:train: Thomas the multithreaded train scheduler.
+:train: A muiltithreaded train schedular simulation.
 
 ## TODO
 + Update design document and add `changes.txt`
