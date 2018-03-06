@@ -145,15 +145,14 @@ int main(int argc, char* argv[]) {
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
     // printf("%c %f %f\n", direction, loading_time, crossing_time);
     pthread_t thread;
-    struct Train train = {
-      .id = threads_count,
-      .priority = isupper(direction) ? 1 : 0,
-      .loading_time = loading_time / 10.0,
-      .crossing_time = crossing_time / 10.0
-    };
     struct TrainThread trainThread = {
       .thread = thread,
-      .train = train
+      .train = {
+        .id = threads_count,
+        .priority = isupper(direction) ? 1 : 0,
+        .loading_time = loading_time / 10.0,
+        .crossing_time = crossing_time / 10.0
+      }
     };
 
     trainThreads[threads_count++] = trainThread;
