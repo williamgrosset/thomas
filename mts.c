@@ -6,6 +6,10 @@
 #include <unistd.h>
 #define MAX_SIZE 1024
 
+// TEMPORARY GLOBAL VARIABLE(S)
+bool can_load_bool = false;
+bool threads_created_bool = false;
+
 /****** MUTEXES & CONDITION VARIABLES ******/
 
 pthread_mutex_t track_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -13,9 +17,6 @@ pthread_mutex_t west_station_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t east_station_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t can_load = PTHREAD_COND_INITIALIZER;
 pthread_cond_t threads_created = PTHREAD_COND_INITIALIZER;
-
-// TEMPORARY GLOBAL VARIABLE(S)
-bool can_load_bool = false;
 
 /****** /MUTEXES & CONDITION VARIABLES ******/
 
@@ -111,6 +112,7 @@ void* process_train(void *arg) {
     printf("Last thread created.\n");
     pthread_mutex_lock(&track_lock);
     pthread_cond_signal(&threads_created);
+    threads_created_bool = true;
     pthread_mutex_unlock(&track_lock);
   }
 
@@ -182,7 +184,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Wait until last train thread has been created
-  pthread_cond_wait(&threads_created, &track_lock);
+  while(!threads_created_bool) pthread_cond_wait(&threads_created, &track_lock);
   pthread_mutex_unlock(&track_lock);
 
   // Broadcast to all trains to begin loading
