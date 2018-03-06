@@ -78,7 +78,8 @@ void displayStation(struct Train station[], int station_size) {
 
 /****** /STATION ******/
 
-void train_process() {
+void* train_process(void *arg) {
+  printf("Thread created.\n");
   // TODO:
   // lock track mutex
   // wait to be signaled
@@ -86,6 +87,7 @@ void train_process() {
   // usleep to load (create function)
   // lock station mutex
   // STOP
+  return NULL;
 }
 
 int main() {
@@ -139,12 +141,11 @@ int main() {
       addTrain(EastStation, &east_station_size, train);
     }
   }
-  num_threads++;
 
   int i;
   for (i = 0; i < num_threads; i++) {
-    // pthread_create(&thread, NULL, *thread, (void*) arg);
-    // pthread_join(thread, NULL);
+    pthread_create(&threads[i], NULL, &train_process, NULL);
+    pthread_join(threads[i], NULL);
   }
 
   // Temporary
