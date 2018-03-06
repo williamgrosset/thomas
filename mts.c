@@ -14,6 +14,9 @@ pthread_mutex_t east_station_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t can_load = PTHREAD_COND_INITIALIZER;
 pthread_cond_t threads_created = PTHREAD_COND_INITIALIZER;
 
+// TEMPORARY GLOBAL VARIABLE(S)
+bool can_load_bool = false;
+
 /****** /MUTEXES & CONDITION VARIABLES ******/
 
 /****** TRAIN ******/
@@ -113,7 +116,7 @@ void* process_train(void *arg) {
 
   // Wait to begin loading
   pthread_mutex_lock(&track_lock);
-  pthread_cond_wait(&can_load, &track_lock);
+  while (!can_load_bool) pthread_cond_wait(&can_load, &track_lock);
   pthread_mutex_unlock(&track_lock);
 
   printf("THREAD IS ALIVE!\n");
@@ -185,6 +188,7 @@ int main(int argc, char* argv[]) {
   // Broadcast to all trains to begin loading
   pthread_mutex_lock(&track_lock);
   pthread_cond_broadcast(&can_load);
+  can_load_bool = true;
   pthread_mutex_unlock(&track_lock);
 
   // Wait to dispatch a train across main track
