@@ -48,7 +48,8 @@ typedef struct TrainThread {
 
 typedef struct ThreadParams {
   struct Train train;
-  int count;
+  int curr_count;
+  int thread_count;
 } ThreadParams;
 
 /***** THREAD PARAMETERS ******/
@@ -110,10 +111,8 @@ void* process_train(void *arg) {
   printf("Thread created.\n");
   ThreadParams *threadParams = (ThreadParams*) arg;
   Train train = threadParams->train;
-  long count = threadParams->count;
-  printf("%lu\n", count);
 
-  if (count == 2) {
+  if (threadParams->curr_count == (threadParams->thread_count - 1)) {
     // Signal that the last train has been created
     printf("Last thread created.\n");
     pthread_mutex_lock(&track_lock);
@@ -154,7 +153,7 @@ int main(int argc, char* argv[]) {
   struct Train WestStation[MAX_SIZE];
   struct Train EastStation[MAX_SIZE];
 
-  int threads_count = 0;
+  int thread_count = 0;
   float loading_time;
   float crossing_time;
   char direction;
@@ -166,14 +165,14 @@ int main(int argc, char* argv[]) {
     struct TrainThread trainThread = {
       .thread = thread,
       .train = {
-        .id = threads_count,
+        .id = thread_count,
         .priority = isupper(direction) ? 1 : 0,
         .loading_time = loading_time / 10.0,
         .crossing_time = crossing_time / 10.0
       }
     };
 
-    trainThreads[threads_count++] = trainThread;
+    trainThreads[thread_count++] = trainThread;
 
     /* Temporary
     if (direction == 'w' || direction == 'W') {
@@ -186,12 +185,13 @@ int main(int argc, char* argv[]) {
   // Temporary
   // displayStation(EastStation, east_station_size);
 
-  long i;
-  for (i = 0; i < threads_count; i++) {
+  int i;
+  for (i = 0; i < thread_count; i++) {
     // TODO: Pass in Train from trainThreads and use count, num_threads
     struct ThreadParams *threadParams = (ThreadParams*) malloc(sizeof(ThreadParams));
     threadParams->train = trainThreads[i].train;
-    threadParams->count = i;
+    threadParams->curr_count = i;
+    threadParams->thread_count = thread_count;
     pthread_create(&trainThreads[i].thread, NULL, &process_train, (void *) threadParams);
   }
 
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
 
   // TODO: When to join pthreads together?
   long t;
-  for (t = 0; t < threads_count; t++) {
+  for (t = 0; t < thread_count; t++) {
     pthread_join(trainThreads[t].thread, NULL);
   }
 
