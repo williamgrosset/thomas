@@ -44,10 +44,14 @@ typedef struct TrainThread {
 
 /****** /TRAIN THREAD ******/
 
+/***** THREAD PARAMETERS ******/
+
 typedef struct ThreadParams {
   struct Train train;
   int count;
 } ThreadParams;
+
+/***** THREAD PARAMETERS ******/
 
 /****** STATION ******/
 
@@ -104,7 +108,9 @@ void displayStation(struct Train station[], int station_size) {
 
 void* process_train(void *arg) {
   printf("Thread created.\n");
-  long count = (long) arg;
+  ThreadParams *threadParams = (ThreadParams*) arg;
+  Train train = threadParams->train;
+  long count = threadParams->count;
   printf("%lu\n", count);
 
   if (count == 2) {
@@ -126,6 +132,7 @@ void* process_train(void *arg) {
 
   // TODO: Lock station mutex, enqueue, release station mutex
 
+  // free(arg);
   pthread_exit(NULL);
 }
 
@@ -182,7 +189,10 @@ int main(int argc, char* argv[]) {
   long i;
   for (i = 0; i < threads_count; i++) {
     // TODO: Pass in Train from trainThreads and use count, num_threads
-    pthread_create(&trainThreads[i].thread, NULL, &process_train, (void *) i);
+    struct ThreadParams *threadParams = (ThreadParams*) malloc(sizeof(ThreadParams));
+    threadParams->train = trainThreads[i].train;
+    threadParams->count = i;
+    pthread_create(&trainThreads[i].thread, NULL, &process_train, (void *) threadParams);
   }
 
   // Wait until last train thread has been created
