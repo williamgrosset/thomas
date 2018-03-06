@@ -10,6 +10,8 @@
 + MT broadcasts to all trains to begin loading
 + TT usleeps for loading time
 + TT adds train to PriorityQueue with mutex
++ Destroy mutex at end (audit strategy)
++ Clean-up nits and repo, error handling
 + ...
 + Other: Use libraries for memory handling data structures (pls)
 

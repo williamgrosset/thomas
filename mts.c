@@ -85,6 +85,7 @@ void* train_process(void *arg) {
   printf("%lu\n", count);
 
   if (count == 2) {
+    // Signal that all thats have been created 
     printf("Last thread created.\n");
     pthread_mutex_lock(&track_lock);
     pthread_cond_signal(&threads_created);
@@ -92,9 +93,11 @@ void* train_process(void *arg) {
   }
 
   pthread_mutex_lock(&track_lock);
+  // Wait to begin loading all trains at same time
   pthread_cond_wait(&can_load, &track_lock);
   printf("THREAD IS ALIVE!\n");
   pthread_mutex_unlock(&track_lock);
+
   // TODO:
   // lock track mutex
   // wait to be signaled
@@ -115,47 +118,40 @@ int main() {
     return -1;
   }
 
-  // Create PriorityQueue for east_station and west_station (two instances of Station)
+  // Lock track mutex initially
+  pthread_mutex_lock(&track_lock);
+
+  // Create PriorityQueue for West & East station
   int west_station_size = 0;
   int east_station_size = 0;
   struct Train WestStation[MAX_SIZE];
   struct Train EastStation[MAX_SIZE];
 
-  // Create array of train threads and lock track mutex
-  pthread_t threads[MAX_SIZE];
-  pthread_mutex_lock(&track_lock);
-
-  char direction;
+  int num_threads = 0;
   float loading_time;
   float crossing_time;
-  int num_threads = 0;
+  char direction;
+  pthread_t threads[MAX_SIZE];
 
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
-    printf("%c %f %f\n", direction, loading_time, crossing_time);
+    // printf("%c %f %f\n", direction, loading_time, crossing_time);
     pthread_t thread;
     Train train;
+
     train.id = num_threads;
     train.priority = isupper(direction) ? 1 : 0;
     train.loading_time = loading_time / 10.0;
     train.crossing_time = crossing_time / 10.0;
 
-    threads[num_threads] = thread;
-
-    num_threads++;
-
-    // TODO:
-    // (DONE) Create threads for each train
-    // Train threads LOCK TRACK MUTEX and wait to be signaled to begin loading
-    // Main thread waits for last train thread to signal main (all threads created)
-    // Main thread is signaled and broadcasts to begin loading and RELEASES TRACK MUTEX
-    // Train threads begin loading and begin STATION ENQUEUE PROCESS
+    threads[num_threads++] = thread;
 
     // Temporary
+    /*
     if (direction == 'w' || direction == 'W') {
       addTrain(WestStation, &west_station_size, train);
     } else {
       addTrain(EastStation, &east_station_size, train);
-    }
+    }*/
   }
 
   long i;
@@ -180,7 +176,7 @@ int main() {
   }
 
   // Temporary
-  displayStation(EastStation, east_station_size);
+  // displayStation(EastStation, east_station_size);
 
   fclose(fp);
   return 0;
