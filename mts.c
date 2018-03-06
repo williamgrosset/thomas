@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <pthread.h>
 #define MAX_SIZE 1024
 
 /****** TRAIN ******/
@@ -88,6 +89,10 @@ int main() {
   int east_station_size = 0;
   struct Train WestStation[MAX_SIZE];
   struct Train EastStation[MAX_SIZE];
+
+  // MUTEXES & CONDITION VARIABLES
+  pthread_mutex_t track_lock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_cond_t can_load = PTHREAD_COND_INITIALIZER;
 
   // TODO: Detect how many trains (lines) in file
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
