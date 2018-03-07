@@ -148,7 +148,7 @@ void* processTrain(void *arg) {
   }
 
   accum = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
-  printf("Time elapsed: %04.1f\n", accum);
+  printf("%02d:%02d:%04.1f ", (int) accum / (60 * 60), (int) accum / 60, accum);
   printf("Train %i is ready to go %c\n", train.id, train.direction);
 
   // Lock station mutex, enqueue, release station mutex
