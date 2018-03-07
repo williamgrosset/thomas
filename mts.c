@@ -114,7 +114,6 @@ void enqueue(struct Train *station[], int *station_size, pthread_mutex_t *statio
 /****** FOR TESTING ******/
 void displayStation(struct Train *station[], int station_size) {
   int i = 0;
-
   for (i = 0; i < station_size; i++) {
     Train train = *station[i];
     printf("Index: %i, ID: %i, Priority: %i, Loading: %f, Crossing: %f\n", i, train.id, train.priority,
@@ -205,7 +204,8 @@ int main(int argc, char* argv[]) {
     return(EXIT_FAILURE);
   }
 
-  for (int i = 0; i < 10; i++) {
+  int i;
+  for (i = 0; i < 10; i++) {
     WestStation[i] = (Train *)malloc(sizeof(Train));
     EastStation[i] = (Train *)malloc(sizeof(Train));
   }
@@ -239,14 +239,15 @@ int main(int argc, char* argv[]) {
   }
 
   // Create threads
-  for (int i = 0; i < thread_count; i++) {
+  int k;
+  for (int k = 0; k < thread_count; k++) {
     printf("Creating each thread\n");
-    printf("%p\n", &trainThreads[i].train.can_cross);
+    printf("%p\n", &trainThreads[k].train.can_cross);
     struct ThreadParams *threadParams = (ThreadParams*) malloc(sizeof(ThreadParams));
-    threadParams->train = &trainThreads[i].train;
-    threadParams->curr_count = i;
+    threadParams->train = &trainThreads[k].train;
+    threadParams->curr_count = k;
     threadParams->thread_count = thread_count;
-    pthread_create(&trainThreads[i].thread, NULL, &processTrain, (void *) threadParams);
+    pthread_create(&trainThreads[k].thread, NULL, &processTrain, (void *) threadParams);
   }
 
   // Wait until last train thread has been created
@@ -309,8 +310,8 @@ int main(int argc, char* argv[]) {
     pthread_mutex_unlock(&track_lock);
   }
 
-  // TODO: When to join pthreads together?
-  for (long t = 0; t < thread_count; t++) {
+  long t;
+  for (t = 0; t < thread_count; t++) {
     pthread_join(trainThreads[t].thread, NULL);
   }
 
