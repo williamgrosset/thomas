@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #define MAX_SIZE 1024
+#define BILLION 1E9
 
 // TEMPORARY GLOBAL VARIABLE(S)
 bool can_load_bool = false;
@@ -31,8 +32,8 @@ typedef struct Train {
   char direction;
 } Train;
 
-void simulateWork(float duration) {
-  usleep(duration * 100);
+void simulateWork(int duration) {
+  usleep(duration);
 }
 
 /****** /TRAIN ******/
@@ -120,6 +121,8 @@ void displayStation(struct Train station[], int station_size) {
 void* processTrain(void *arg) {
   ThreadParams *threadParams = (ThreadParams*) arg;
   Train train = threadParams->train;
+  struct timespec start, stop;
+  double accum;
 
   if (threadParams->curr_count == (threadParams->thread_count - 1)) {
     // Signal that the last train has been created
@@ -134,7 +137,18 @@ void* processTrain(void *arg) {
   while (!can_load_bool) pthread_cond_wait(&can_load, &track_lock);
   pthread_mutex_unlock(&track_lock);
 
-  simulateWork(train.loading_time);
+  if (clock_gettime(CLOCK_REALTIME, &start) == -1) {
+    perror("Could not get time.");
+    exit(EXIT_FAILURE);
+  }
+  simulateWork(train.loading_time * 1000000);
+  if (clock_gettime(CLOCK_REALTIME, &stop) == -1) {
+    perror("Could not get time.");
+    exit(EXIT_FAILURE);
+  }
+
+  accum = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
+  printf("Time elapsed: %04.1f\n", accum);
   printf("Train %i is ready to go %c\n", train.id, train.direction);
 
   // Lock station mutex, enqueue, release station mutex
@@ -165,7 +179,7 @@ int main(int argc, char* argv[]) {
   fp = fopen(argv[1], "r");
   if (fp == NULL) {
     perror("Error opening file.");
-    return -1;
+    return(EXIT_FAILURE);
   }
 
   // Lock track mutex initially
@@ -179,7 +193,7 @@ int main(int argc, char* argv[]) {
 
   // Scan input file and initialize train threads
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
-    // printf("%c %f %f\n", direction, loading_time, crossing_time);
+    printf("%c %f %f\n", direction, loading_time, crossing_time);
     pthread_t thread;
     struct TrainThread trainThread = {
       .thread = thread,
@@ -246,5 +260,5 @@ int main(int argc, char* argv[]) {
 
   // TODO: Destroy mutexes
   fclose(fp);
-  return 0;
+  return(EXIT_SUCCESS);
 }
