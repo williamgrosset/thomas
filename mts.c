@@ -31,7 +31,7 @@ typedef struct Train {
 } Train;
 
 void simulateWork(float duration) {
-  usleep(duration);
+  usleep(duration * 100);
 }
 
 /****** /TRAIN ******/
@@ -135,6 +135,7 @@ void* process_train(void *arg) {
 
   printf("THREAD %i IS ALIVE!\n", threadParams->curr_count);
   simulateWork(train.loading_time);
+  printf("Train %i is ready to go %c\n", train.id, train.direction);
 
   // Lock station mutex, enqueue, release station mutex
   if (train.direction == 'w' || train.direction == 'W') {
