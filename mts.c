@@ -118,11 +118,20 @@ void displayStation(struct Train station[], int station_size) {
 
 /****** /STATION ******/
 
+void calc_accum_time(struct timespec start, struct timespec stop) {
+  if (clock_gettime(CLOCK_REALTIME, &stop) == -1) {
+    perror("Could not get time.");
+    exit(EXIT_FAILURE);
+  }
+
+  double accum = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
+  printf("%02d:%02d:%04.1f ", (int) accum / (60 * 60), (int) accum / 60, accum);
+}
+
 void* processTrain(void *arg) {
   ThreadParams *threadParams = (ThreadParams*) arg;
   Train train = threadParams->train;
   struct timespec start, stop;
-  double accum;
 
   if (threadParams->curr_count == (threadParams->thread_count - 1)) {
     // Signal that the last train has been created
@@ -141,14 +150,9 @@ void* processTrain(void *arg) {
     perror("Could not get time.");
     exit(EXIT_FAILURE);
   }
-  simulateWork(train.loading_time * 1000000);
-  if (clock_gettime(CLOCK_REALTIME, &stop) == -1) {
-    perror("Could not get time.");
-    exit(EXIT_FAILURE);
-  }
 
-  accum = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
-  printf("%02d:%02d:%04.1f ", (int) accum / (60 * 60), (int) accum / 60, accum);
+  simulateWork(train.loading_time * 1000000);
+  calc_accum_time(start, stop);
   printf("Train %i is ready to go %c\n", train.id, train.direction);
 
   // Lock station mutex, enqueue, release station mutex
@@ -160,7 +164,6 @@ void* processTrain(void *arg) {
 
   // Signal main thread
   pthread_mutex_lock(&track_lock);
-  printf("Thread %i sending signal to dispatcher.\n", train.id);
   pthread_cond_signal(&station_ready);
   pthread_mutex_unlock(&track_lock);
 
