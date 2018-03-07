@@ -80,7 +80,8 @@ struct Train dequeue(struct Train station[], int *station_size) {
   return station[--*station_size];
 }
 
-void enqueue(struct Train station[], int *station_size, struct Train train) {
+void enqueue(struct Train station[], int *station_size, pthread_mutex_t *station_lock, struct Train train) {
+  pthread_mutex_lock(station_lock);
   int i = 0;
 
   if (!isFull(*station_size)) {
@@ -100,6 +101,7 @@ void enqueue(struct Train station[], int *station_size, struct Train train) {
     }
     *station_size += 1;
   }
+  pthread_mutex_unlock(station_lock);
 }
 
 /****** FOR TESTING ******/
@@ -140,13 +142,9 @@ void* processTrain(void *arg) {
 
   // Lock station mutex, enqueue, release station mutex
   if (train.direction == 'w' || train.direction == 'W') {
-    pthread_mutex_lock(&west_station_lock);
-    enqueue(WestStation, &west_station_size, train);
-    pthread_mutex_unlock(&west_station_lock);
+    enqueue(WestStation, &west_station_size, &west_station_lock, train);
   } else {
-    pthread_mutex_lock(&east_station_lock);
-    enqueue(EastStation, &east_station_size, train);
-    pthread_mutex_unlock(&east_station_lock);
+    enqueue(EastStation, &east_station_size, &east_station_lock, train);
   }
 
   // Signal main thread
