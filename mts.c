@@ -27,10 +27,11 @@ typedef struct Train {
   int priority; // (0 = low; 1 = high)
   float loading_time; // (seconds)
   float crossing_time; // (seconds)
+  char direction;
 } Train;
 
-void simulateWork(float time_duration) {
-  usleep(time_duration);
+void simulateWork(float duration) {
+  usleep(duration);
 }
 
 /****** /TRAIN ******/
@@ -55,6 +56,12 @@ typedef struct ThreadParams {
 /***** THREAD PARAMETERS ******/
 
 /****** STATION ******/
+
+// Initialize PriorityQueues for West & East station
+int west_station_size = 0;
+int east_station_size = 0;
+struct Train WestStation[MAX_SIZE];
+struct Train EastStation[MAX_SIZE];
 
 bool isEmpty(int station_size) {
   return station_size == 0;
@@ -129,7 +136,16 @@ void* process_train(void *arg) {
   printf("THREAD %i IS ALIVE!\n", threadParams->curr_count);
   simulateWork(train.loading_time);
 
-  // TODO: Lock station mutex, enqueue, release station mutex
+  // Lock station mutex, enqueue, release station mutex
+  if (train.direction == 'w' || train.direction == 'W') {
+    pthread_mutex_lock(&west_station_lock);
+    addTrain(WestStation, &west_station_size, train);
+    pthread_mutex_unlock(&west_station_lock);
+  } else {
+    pthread_mutex_lock(&east_station_lock);
+    addTrain(EastStation, &east_station_size, train);
+    pthread_mutex_unlock(&east_station_lock);
+  }
 
   // free(arg);
   pthread_exit(NULL);
@@ -148,10 +164,7 @@ int main(int argc, char* argv[]) {
   pthread_mutex_lock(&track_lock);
 
   // Initialize PriorityQueues for West & East station
-  int west_station_size = 0;
-  int east_station_size = 0;
-  struct Train WestStation[MAX_SIZE];
-  struct Train EastStation[MAX_SIZE];
+  // see global
 
   int thread_count = 0;
   float loading_time;
@@ -169,18 +182,12 @@ int main(int argc, char* argv[]) {
         .id = thread_count,
         .priority = isupper(direction) ? 1 : 0,
         .loading_time = loading_time / 10.0,
-        .crossing_time = crossing_time / 10.0
+        .crossing_time = crossing_time / 10.0,
+        .direction = direction
       }
     };
 
     trainThreads[thread_count++] = trainThread;
-
-    /* Temporary
-    if (direction == 'w' || direction == 'W') {
-      addTrain(WestStation, &west_station_size, trainThread.train);
-    } else {
-      addTrain(EastStation, &east_station_size, trainThread.train);
-    }*/
   }
 
   // Temporary
