@@ -2,7 +2,7 @@
 setup: mts
 
 mts: mts.c
-	gcc mts.c -o mts.o
+	gcc -pthread mts.c -o mts.o
 
 run: mts.o
 	./mts.o $(f)

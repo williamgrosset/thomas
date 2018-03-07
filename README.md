@@ -15,6 +15,9 @@
 + ...
 + Other: Use libraries for memory handling data structures (pls)
 
+## Debug Notes
++ Address before/after enqueue function scope is different
+
 *gif here*
 
 ## Overview

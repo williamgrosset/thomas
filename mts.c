@@ -51,7 +51,7 @@ typedef struct TrainThread {
 /***** THREAD PARAMETERS ******/
 
 typedef struct ThreadParams {
-  struct Train train;
+  struct Train *train;
   int curr_count;
   int thread_count;
 } ThreadParams;
@@ -63,8 +63,8 @@ typedef struct ThreadParams {
 // Initialize PriorityQueues for West & East station
 int west_station_size = 0;
 int east_station_size = 0;
-struct Train WestStation[MAX_SIZE];
-struct Train EastStation[MAX_SIZE];
+struct Train *WestStation[MAX_SIZE];
+struct Train *EastStation[MAX_SIZE];
 
 bool isEmpty(int station_size) {
   return station_size == 0;
@@ -74,32 +74,37 @@ bool isFull(int station_size) {
   return station_size == MAX_SIZE;
 }
 
-struct Train peek(struct Train station[], int station_size) {
+struct Train* peek(struct Train *station[], int station_size) {
   return station[station_size - 1];
 }
 
-struct Train dequeue(struct Train station[], int *station_size) {
-  return station[--*station_size];
+struct Train* dequeue(struct Train *station[], pthread_mutex_t *station_lock, int *station_size) {
+  pthread_mutex_lock(station_lock);
+  Train *train = station[--*station_size];
+  pthread_mutex_unlock(station_lock);
+  return train;
 }
 
-void enqueue(struct Train station[], int *station_size, pthread_mutex_t *station_lock, struct Train train) {
+void enqueue(struct Train *station[], int *station_size, pthread_mutex_t *station_lock, struct Train *train) {
+  printf("Enqueue\n");
+  printf("%p\n", &train->can_cross);
   pthread_mutex_lock(station_lock);
   int i = 0;
 
   if (!isFull(*station_size)) {
     if (*station_size == 0) {
-      station[*station_size] = train;
+      *station[*station_size] = *train;
     } else {
       for (i = *station_size - 1; i >= 0; i--) {
-        if (train.priority <= station[i].priority && train.id > station[i].id) {
-          station[i + 1] = station[i];
+        if (train->priority <= station[i]->priority && train->id > station[i]->id) {
+          *station[i + 1] = *station[i];
         } else {
           break;
         }
       }
 
       // Insert train
-      station[i + 1] = train;
+      *station[i + 1] = *train;
     }
     *station_size += 1;
   }
@@ -107,11 +112,11 @@ void enqueue(struct Train station[], int *station_size, pthread_mutex_t *station
 }
 
 /****** FOR TESTING ******/
-void displayStation(struct Train station[], int station_size) {
+void displayStation(struct Train *station[], int station_size) {
   int i = 0;
 
   for (i = 0; i < station_size; i++) {
-    Train train = station[i];
+    Train train = *station[i];
     printf("Index: %i, ID: %i, Priority: %i, Loading: %f, Crossing: %f\n", i, train.id, train.priority,
         train.loading_time, train.crossing_time);
   }
@@ -131,7 +136,7 @@ void calc_accum_time(struct timespec start, struct timespec stop) {
 
 void* processTrain(void *arg) {
   ThreadParams *threadParams = (ThreadParams*) arg;
-  Train train = threadParams->train;
+  Train train = *threadParams->train;
   struct timespec start, stop;
 
   if (threadParams->curr_count == (threadParams->thread_count - 1)) {
@@ -152,26 +157,40 @@ void* processTrain(void *arg) {
     exit(EXIT_FAILURE);
   }
 
-  simulateWork(train.loading_time * 1000000);
+  simulateWork(threadParams->train->loading_time * 1000000);
   calc_accum_time(start, stop);
-  printf("Train %i is ready to go %c\n", train.id, train.direction);
+  printf("Train %i is ready to go %c\n", threadParams->train->id, threadParams->train->direction);
 
   // Lock station mutex, enqueue, release station mutex
-  if (train.direction == 'w' || train.direction == 'W') {
-    enqueue(WestStation, &west_station_size, &west_station_lock, train);
+  if (threadParams->train->direction == 'w' || threadParams->train->direction == 'W') {
+    enqueue(WestStation, &west_station_size, &west_station_lock, threadParams->train);
   } else {
-    enqueue(EastStation, &east_station_size, &east_station_lock, train);
+    enqueue(EastStation, &east_station_size, &east_station_lock, threadParams->train);
   }
 
   // Signal main thread
   pthread_mutex_lock(&track_lock);
+  printf("Train %i signaling main that station is ready.\n", threadParams->train->id);
   pthread_cond_signal(&station_ready);
   pthread_mutex_unlock(&track_lock);
 
-  // pthread_mutex_lock(&track_lock);
-  // while () pthread_cond_wait(&train.can_cross, &track_lock);
-  // simulateWork(train.crossing_time);
-  // pthread_mutex_unlock(&track_lock);
+  // Wait to cross
+  pthread_mutex_lock(&track_lock);
+  printf("Train %i is waiting to cross.\n", threadParams->train->id);
+  // TODO: while ()
+  printf("Train Convar\n");
+  printf("%p\n", &(threadParams->train->can_cross));
+  pthread_cond_wait(&(threadParams->train->can_cross), &track_lock);
+  calc_accum_time(start, stop);
+  printf("Train %i is ON the main track going %c\n", threadParams->train->id, threadParams->train->direction);
+  simulateWork(threadParams->train->crossing_time * 1000000);
+
+  // Signal to MT once done crossing
+  pthread_mutex_lock(&track_lock);
+  calc_accum_time(start, stop);
+  printf("Train %i is OFF the main track after going %c\n", threadParams->train->id, threadParams->train->direction);
+  pthread_cond_signal(&threadParams->train->can_cross);
+  pthread_mutex_unlock(&track_lock);
 
   // free(arg);
   pthread_exit(NULL);
@@ -184,6 +203,11 @@ int main(int argc, char* argv[]) {
   if (fp == NULL) {
     perror("Error opening file.");
     return(EXIT_FAILURE);
+  }
+
+  for (int i = 0; i < 10; i++) {
+    WestStation[i] = (Train *)malloc(sizeof(Train));
+    EastStation[i] = (Train *)malloc(sizeof(Train));
   }
 
   // Lock track mutex initially
@@ -214,13 +238,12 @@ int main(int argc, char* argv[]) {
     trainThreads[thread_count++] = trainThread;
   }
 
-  // Temporary
-  // displayStation(EastStation, east_station_size);
-
   // Create threads
   for (int i = 0; i < thread_count; i++) {
+    printf("Creating each thread\n");
+    printf("%p\n", &trainThreads[i].train.can_cross);
     struct ThreadParams *threadParams = (ThreadParams*) malloc(sizeof(ThreadParams));
-    threadParams->train = trainThreads[i].train;
+    threadParams->train = &trainThreads[i].train;
     threadParams->curr_count = i;
     threadParams->thread_count = thread_count;
     pthread_create(&trainThreads[i].thread, NULL, &processTrain, (void *) threadParams);
@@ -237,25 +260,53 @@ int main(int argc, char* argv[]) {
   pthread_mutex_unlock(&track_lock);
 
   // Wait to dispatch a train across main track
+  bool last_train_east = false;
   int trains_dispatched = 0;
+
   while (trains_dispatched < thread_count) {
     pthread_mutex_lock(&track_lock);
     while (isEmpty(west_station_size) && isEmpty(east_station_size)) pthread_cond_wait(&station_ready, &track_lock);
-    // Begin dispatch algorithm
+    Train *dispatched_train;
+
     if (!isEmpty(west_station_size) && !isEmpty(east_station_size)) {
-      dequeue(WestStation, &west_station_size);
-      // choose which one to remove
+      Train *west_train = peek(WestStation, west_station_size);
+      Train *east_train = peek(EastStation, east_station_size);
+
+      if (west_train->priority == east_train->priority) {
+        if (last_train_east) {
+          dispatched_train = dequeue(WestStation, &west_station_lock, &west_station_size);
+          last_train_east = false;
+        } else {
+          dispatched_train = dequeue(EastStation, &east_station_lock, &east_station_size);
+          last_train_east = true;
+        }
+      } else if (west_train->priority > east_train->priority) {
+        dispatched_train = dequeue(WestStation, &west_station_lock, &west_station_size);
+        last_train_east = false;
+      } else {
+        dispatched_train = dequeue(EastStation, &east_station_lock, &east_station_size);
+        last_train_east = true;
+      }
     } else if (!isEmpty(west_station_size)) {
-      dequeue(WestStation, &west_station_size);
+      dispatched_train = dequeue(WestStation, &west_station_lock, &west_station_size);
+      last_train_east = false;
     } else {
-      dequeue(EastStation, &east_station_size);
+      dispatched_train = dequeue(EastStation, &east_station_lock, &east_station_size);
+      last_train_east = true;
     }
+
     // Signal appropriate train and release mutex
-    printf("Dispatched train across track and removed from Q.\n");
+    // printf("Dispatched train across track and removed from Q.\n");
+    printf("Main has chosen train %i to cross.\n", dispatched_train->id);
+    printf("%p\n", &dispatched_train->can_cross);
+    pthread_cond_signal(&dispatched_train->can_cross);
     pthread_mutex_unlock(&track_lock);
 
-    // Wait train to be signaled by train (done crossing)
+    // TODO: Wait train to be signaled by train (done crossing)
+    pthread_mutex_lock(&track_lock);
+    pthread_cond_wait(&dispatched_train->can_cross, &track_lock);
     trains_dispatched++;
+    pthread_mutex_unlock(&track_lock);
   }
 
   // TODO: When to join pthreads together?
