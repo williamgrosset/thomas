@@ -76,11 +76,11 @@ struct Train peek(struct Train station[], int station_size) {
   return station[station_size - 1];
 }
 
-struct Train removeTrain(struct Train station[], int *station_size) {
+struct Train dequeue(struct Train station[], int *station_size) {
   return station[--*station_size];
 }
 
-void addTrain(struct Train station[], int *station_size, struct Train train) {
+void enqueue(struct Train station[], int *station_size, struct Train train) {
   int i = 0;
 
   if (!isFull(*station_size)) {
@@ -141,11 +141,11 @@ void* processTrain(void *arg) {
   // Lock station mutex, enqueue, release station mutex
   if (train.direction == 'w' || train.direction == 'W') {
     pthread_mutex_lock(&west_station_lock);
-    addTrain(WestStation, &west_station_size, train);
+    enqueue(WestStation, &west_station_size, train);
     pthread_mutex_unlock(&west_station_lock);
   } else {
     pthread_mutex_lock(&east_station_lock);
-    addTrain(EastStation, &east_station_size, train);
+    enqueue(EastStation, &east_station_size, train);
     pthread_mutex_unlock(&east_station_lock);
   }
 
@@ -231,12 +231,12 @@ int main(int argc, char* argv[]) {
     while (isEmpty(west_station_size) && isEmpty(east_station_size)) pthread_cond_wait(&station_ready, &track_lock);
     // Begin dispatch algorithm
     if (!isEmpty(west_station_size) && !isEmpty(east_station_size)) {
-      removeTrain(WestStation, &west_station_size);
+      dequeue(WestStation, &west_station_size);
       // choose which one to remove
     } else if (!isEmpty(west_station_size)) {
-      removeTrain(WestStation, &west_station_size);
+      dequeue(WestStation, &west_station_size);
     } else {
-      removeTrain(EastStation, &east_station_size);
+      dequeue(EastStation, &east_station_size);
     }
     //
     printf("Dispatched train across track and removed from Q.\n");
