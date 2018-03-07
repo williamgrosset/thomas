@@ -17,6 +17,7 @@ pthread_mutex_t west_station_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t east_station_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t can_load = PTHREAD_COND_INITIALIZER;
 pthread_cond_t threads_created = PTHREAD_COND_INITIALIZER;
+pthread_cond_t station_ready = PTHREAD_COND_INITIALIZER;
 
 /****** /MUTEXES & CONDITION VARIABLES ******/
 
@@ -75,8 +76,8 @@ struct Train peek(struct Train station[], int station_size) {
   return station[station_size - 1];
 }
 
-struct Train removeTrain(struct Train station[], int station_size) {
-  return station[--station_size];
+struct Train removeTrain(struct Train station[], int *station_size) {
+  return station[--*station_size];
 }
 
 void addTrain(struct Train station[], int *station_size, struct Train train) {
@@ -148,6 +149,16 @@ void* process_train(void *arg) {
     pthread_mutex_unlock(&east_station_lock);
   }
 
+  // Signal main thread
+  pthread_mutex_lock(&track_lock);
+  printf("Thread %i sending signal to dispatcher.\n", train.id);
+  pthread_cond_signal(&station_ready);
+  pthread_mutex_unlock(&track_lock);
+
+  // pthread_mutex_lock(&track_lock);
+  // while () pthread_cond_wait(&can_cross, &track_lock);
+  // pthread_mutex_unlock(&track_lock);
+
   // free(arg);
   pthread_exit(NULL);
 }
@@ -214,10 +225,24 @@ int main(int argc, char* argv[]) {
   pthread_mutex_unlock(&track_lock);
 
   // Wait to dispatch a train across main track
-  // while (n trains to be dispatched) {
-    // pthread_mutex_lock(&track_lock);
-    // pthread_cond_wait(&ready_train);
-  // }
+  int trains_dispatched = 0;
+  while (trains_dispatched < thread_count) {
+    pthread_mutex_lock(&track_lock);
+    while (isEmpty(west_station_size) && isEmpty(east_station_size)) pthread_cond_wait(&station_ready, &track_lock);
+    // Begin dispatch algorithm
+    if (!isEmpty(west_station_size) && !isEmpty(east_station_size)) {
+      removeTrain(WestStation, &west_station_size);
+      // choose which one to remove
+    } else if (!isEmpty(west_station_size)) {
+      removeTrain(WestStation, &west_station_size);
+    } else {
+      removeTrain(EastStation, &east_station_size);
+    }
+    //
+    printf("Dispatched train across track and removed from Q.\n");
+    pthread_mutex_unlock(&track_lock);
+    trains_dispatched++;
+  }
 
   // TODO: When to join pthreads together?
   for (long t = 0; t < thread_count; t++) {
