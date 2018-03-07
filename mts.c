@@ -115,7 +115,7 @@ void displayStation(struct Train station[], int station_size) {
 
 /****** /STATION ******/
 
-void* process_train(void *arg) {
+void* processTrain(void *arg) {
   printf("Thread created.\n");
   ThreadParams *threadParams = (ThreadParams*) arg;
   Train train = threadParams->train;
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
     threadParams->train = trainThreads[i].train;
     threadParams->curr_count = i;
     threadParams->thread_count = thread_count;
-    pthread_create(&trainThreads[i].thread, NULL, &process_train, (void *) threadParams);
+    pthread_create(&trainThreads[i].thread, NULL, &processTrain, (void *) threadParams);
   }
 
   // Wait until last train thread has been created
