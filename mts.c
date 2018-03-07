@@ -126,8 +126,8 @@ void* process_train(void *arg) {
   while (!can_load_bool) pthread_cond_wait(&can_load, &track_lock);
   pthread_mutex_unlock(&track_lock);
 
-  printf("THREAD IS ALIVE!\n");
-  // simulateWork(train.loading_time)
+  printf("THREAD %i IS ALIVE!\n", threadParams->curr_count);
+  simulateWork(train.loading_time);
 
   // TODO: Lock station mutex, enqueue, release station mutex
 
