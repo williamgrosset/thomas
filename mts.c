@@ -118,13 +118,11 @@ void displayStation(struct Train station[], int station_size) {
 /****** /STATION ******/
 
 void* processTrain(void *arg) {
-  printf("Thread created.\n");
   ThreadParams *threadParams = (ThreadParams*) arg;
   Train train = threadParams->train;
 
   if (threadParams->curr_count == (threadParams->thread_count - 1)) {
     // Signal that the last train has been created
-    printf("Last thread created.\n");
     pthread_mutex_lock(&track_lock);
     pthread_cond_signal(&threads_created);
     threads_created_bool = true;
@@ -136,7 +134,6 @@ void* processTrain(void *arg) {
   while (!can_load_bool) pthread_cond_wait(&can_load, &track_lock);
   pthread_mutex_unlock(&track_lock);
 
-  printf("THREAD %i IS ALIVE!\n", threadParams->curr_count);
   simulateWork(train.loading_time);
   printf("Train %i is ready to go %c\n", train.id, train.direction);
 
@@ -154,7 +151,8 @@ void* processTrain(void *arg) {
   pthread_mutex_unlock(&track_lock);
 
   // pthread_mutex_lock(&track_lock);
-  // while () pthread_cond_wait(&can_cross, &track_lock);
+  // while () pthread_cond_wait(&train.can_cross, &track_lock);
+  // simulateWork(train.crossing_time);
   // pthread_mutex_unlock(&track_lock);
 
   // free(arg);
@@ -172,9 +170,6 @@ int main(int argc, char* argv[]) {
 
   // Lock track mutex initially
   pthread_mutex_lock(&track_lock);
-
-  // Initialize PriorityQueues for West & East station
-  // see global
 
   int thread_count = 0;
   float loading_time;
@@ -236,9 +231,11 @@ int main(int argc, char* argv[]) {
     } else {
       dequeue(EastStation, &east_station_size);
     }
-    //
+    // Signal appropriate train and release mutex
     printf("Dispatched train across track and removed from Q.\n");
     pthread_mutex_unlock(&track_lock);
+
+    // Wait train to be signaled by train (done crossing)
     trains_dispatched++;
   }
 
