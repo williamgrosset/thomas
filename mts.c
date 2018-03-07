@@ -30,6 +30,7 @@ typedef struct Train {
   float loading_time; // (seconds)
   float crossing_time; // (seconds)
   char direction;
+  pthread_cond_t can_cross;
 } Train;
 
 void simulateWork(int duration) {
@@ -205,7 +206,8 @@ int main(int argc, char* argv[]) {
         .priority = isupper(direction) ? 1 : 0,
         .loading_time = loading_time / 10.0,
         .crossing_time = crossing_time / 10.0,
-        .direction = direction
+        .direction = direction,
+        .can_cross = PTHREAD_COND_INITIALIZER
       }
     };
 
