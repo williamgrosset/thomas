@@ -171,7 +171,6 @@ void* processTrain(void *arg) {
   pthread_cond_signal(&threadParams->train->can_cross);
   pthread_mutex_unlock(&track_lock);
 
-  // free(arg);
   pthread_exit(NULL);
 }
 
