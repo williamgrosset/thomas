@@ -17,11 +17,6 @@ make run f=trains.txt
 ./mts.o trains.txt
 ```
 
-#### Run scheduler infinitely (testing)
-```
-bash -c 'while [ 0 ]; do make run f=trains.txt;done'
-```
-
 #### Clean build
 ```
 make clean
