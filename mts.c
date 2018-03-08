@@ -6,8 +6,6 @@
 #include <unistd.h>
 #define MAX_SIZE 1024
 #define BILLION 1E9
-
-// TEMPORARY GLOBAL VARIABLE(S)
 bool can_load_bool = false;
 bool threads_created_bool = false;
 
@@ -56,11 +54,10 @@ typedef struct ThreadParams {
   int thread_count;
 } ThreadParams;
 
-/***** THREAD PARAMETERS ******/
+/***** /THREAD PARAMETERS ******/
 
 /****** STATION ******/
 
-// Initialize PriorityQueues for West & East station
 int west_station_size = 0;
 int east_station_size = 0;
 struct Train *WestStation[MAX_SIZE];
@@ -107,15 +104,6 @@ void enqueue(struct Train *station[], int *station_size, pthread_mutex_t *statio
     *station_size += 1;
   }
   pthread_mutex_unlock(station_lock);
-}
-
-void displayStation(struct Train *station[], int station_size) {
-  int i = 0;
-  for (i = 0; i < station_size; i++) {
-    Train train = *station[i];
-    printf("Index: %i, ID: %i, Priority: %i, Loading: %f, Crossing: %f, Convar: %p\n", i, train.id, train.priority,
-        train.loading_time, train.crossing_time, &train.can_cross);
-  }
 }
 
 /****** /STATION ******/
