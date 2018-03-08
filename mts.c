@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
 
   // Create threads
   int k;
-  for (int k = 0; k < thread_count; k++) {
+  for (k = 0; k < thread_count; k++) {
     struct ThreadParams *threadParams = (ThreadParams*) malloc(sizeof(ThreadParams));
     threadParams->train = &trainThreads[k].train;
     threadParams->curr_count = k;
