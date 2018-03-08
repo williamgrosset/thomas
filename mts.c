@@ -86,8 +86,6 @@ struct Train* dequeue(struct Train *station[], pthread_mutex_t *station_lock, in
 }
 
 void enqueue(struct Train *station[], int *station_size, pthread_mutex_t *station_lock, struct Train *train) {
-  printf("Enqueue\n");
-  printf("%p\n", &train->can_cross);
   pthread_mutex_lock(station_lock);
   int i = 0;
 
@@ -111,13 +109,12 @@ void enqueue(struct Train *station[], int *station_size, pthread_mutex_t *statio
   pthread_mutex_unlock(station_lock);
 }
 
-/****** FOR TESTING ******/
 void displayStation(struct Train *station[], int station_size) {
   int i = 0;
   for (i = 0; i < station_size; i++) {
     Train train = *station[i];
-    printf("Index: %i, ID: %i, Priority: %i, Loading: %f, Crossing: %f\n", i, train.id, train.priority,
-        train.loading_time, train.crossing_time);
+    printf("Index: %i, ID: %i, Priority: %i, Loading: %f, Crossing: %f, Convar: %p\n", i, train.id, train.priority,
+        train.loading_time, train.crossing_time, &train.can_cross);
   }
 }
 
@@ -169,16 +166,11 @@ void* processTrain(void *arg) {
 
   // Signal main thread
   pthread_mutex_lock(&track_lock);
-  printf("Train %i signaling main that station is ready.\n", threadParams->train->id);
   pthread_cond_signal(&station_ready);
   pthread_mutex_unlock(&track_lock);
 
   // Wait to cross
   pthread_mutex_lock(&track_lock);
-  printf("Train %i is waiting to cross.\n", threadParams->train->id);
-  // TODO: while ()
-  printf("Train Convar\n");
-  printf("%p\n", &(threadParams->train->can_cross));
   pthread_cond_wait(&(threadParams->train->can_cross), &track_lock);
   calc_accum_time(start, stop);
   printf("Train %i is ON the main track going %c\n", threadParams->train->id, threadParams->train->direction);
@@ -221,7 +213,6 @@ int main(int argc, char* argv[]) {
 
   // Scan input file and initialize train threads
   while (EOF != fscanf(fp, "%c %f %f\n", &direction, &loading_time, &crossing_time)) {
-    printf("%c %f %f\n", direction, loading_time, crossing_time);
     pthread_t thread;
     struct TrainThread trainThread = {
       .thread = thread,
@@ -241,8 +232,6 @@ int main(int argc, char* argv[]) {
   // Create threads
   int k;
   for (int k = 0; k < thread_count; k++) {
-    printf("Creating each thread\n");
-    printf("%p\n", &trainThreads[k].train.can_cross);
     struct ThreadParams *threadParams = (ThreadParams*) malloc(sizeof(ThreadParams));
     threadParams->train = &trainThreads[k].train;
     threadParams->curr_count = k;
@@ -297,13 +286,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Signal appropriate train and release mutex
-    // printf("Dispatched train across track and removed from Q.\n");
-    printf("Main has chosen train %i to cross.\n", dispatched_train->id);
-    printf("%p\n", &dispatched_train->can_cross);
     pthread_cond_signal(&dispatched_train->can_cross);
     pthread_mutex_unlock(&track_lock);
 
-    // TODO: Wait train to be signaled by train (done crossing)
     pthread_mutex_lock(&track_lock);
     pthread_cond_wait(&dispatched_train->can_cross, &track_lock);
     trains_dispatched++;
@@ -315,7 +300,9 @@ int main(int argc, char* argv[]) {
     pthread_join(trainThreads[t].thread, NULL);
   }
 
-  // TODO: Destroy mutexes
+  pthread_mutex_destroy(&track_lock);
+  pthread_mutex_destroy(&west_station_lock);
+  pthread_mutex_destroy(&east_station_lock);
   fclose(fp);
   return(EXIT_SUCCESS);
 }
